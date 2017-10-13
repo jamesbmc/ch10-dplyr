@@ -9,19 +9,53 @@ install.packages('devtools')
 devtools::install_github("hadley/fueleconomy")
 
 # Require/library the fueleconomy package
+library(fueleconomy)
 # Install (if you haven't already) and load the `dplyr`package
-
+library(dplyr)
 
 # Which Accura model has the best hwy MPG in 2015? (without method chaining)
-
+acuras <- filter(vehicles, make == 'Acura', year == 2015)
+best.acura <- filter(acuras, hwy == max(hwy))
+best.model <- select(best.acura, model)
 
 # Which Accura model has the best hwy MPG in 2015? (nesting functions)
-
+best.model <- select(
+  filter(
+    filter(vehicles, make == 'Acura', year == 2015), hwy == max(hwy)
+  ), model
+)
 
 # Which Accura model has the best hwy MPG in 2015? (pipe operator)
+best.model <- filter(vehicles, make == 'Acura', year == 2015) %>%
+  filter(hwy == max(hwy)) %>%
+  select(model)
 
 
 ### Bonus ###
 
 # Write 3 functions, one for each approach.  Then, 
 # Test how long it takes to perform each one 1000 times
+WithoutChaining <- function() {
+  acuras <- filter(vehicles, make == 'Acura', year == 2015)
+  best.acura <- filter(acuras, hwy == max(hwy))
+  best.model <- select(best.acura, model)
+}
+
+NestedModel <- function() {
+  best.model <- select(
+    filter(
+      filter(vehicles, make == 'Acura', year == 2015), hwy == max(hwy)
+    ), model
+  )
+}
+
+PipeModel <- function() {
+  best.model <- filter(vehicles, make == 'Acura', year == 2015) %>%
+    filter(hwy == max(hwy)) %>%
+    select(model)
+}
+
+# Nested time was best, pipe and without chaining about the same. All were within .12 of a second though.
+system.time(for (i in 1:1000) WithoutChaining())
+system.time(for (i in 1:1000) NestedModel())
+system.time(for (i in 1:1000) PipeModel())
